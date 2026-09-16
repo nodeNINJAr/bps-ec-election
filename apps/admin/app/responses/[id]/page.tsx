@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { connectDB, Nomination } from "@bps/db";
+import { DeleteButton } from "@/components/DeleteButton";
 
 export const dynamic = "force-dynamic";
 
@@ -19,12 +20,22 @@ export default async function ResponseDetailsPage({
 
   const submittedAt = doc.createdAt ? new Date(doc.createdAt).toLocaleString() : "";
   const isImage = /\.(png|jpe?g|gif|webp)(\?|$)/i.test(doc.feeReceiptUrl);
+  const docId = String(doc._id);
 
   return (
     <main className="mx-auto max-w-3xl px-4 py-6">
-      <Link href="/" className="text-sm text-indigo-600 hover:underline">
-        ← সব প্রতিক্রিয়া
-      </Link>
+      <div className="flex items-center justify-between">
+        <Link href="/" className="text-sm text-indigo-600 hover:underline">
+          ← সব প্রতিক্রিয়া
+        </Link>
+        <DeleteButton
+          ids={[docId]}
+          label="Delete"
+          confirmMessage={`"${doc.voterName}"-এর প্রতিক্রিয়া মুছে ফেলবেন? এই কাজটি ফিরিয়ে নেওয়া যাবে না।`}
+          className="rounded border border-red-200 px-3 py-1.5 text-sm font-medium text-red-600 hover:bg-red-50 disabled:opacity-60"
+          redirectTo="/"
+        />
+      </div>
 
       <div className="mt-4 rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
         <div className="flex flex-wrap items-start justify-between gap-2">

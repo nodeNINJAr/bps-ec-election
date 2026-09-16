@@ -52,6 +52,8 @@ export async function POST(req: NextRequest) {
     await connectDB();
 
     const dup = await checkDuplicate({
+      email: fields.email,
+      voterMembershipId: fields.voterMembershipId,
       position: fields.position,
       proposerMembershipId: fields.proposerMembershipId,
       supporterMembershipId: fields.supporterMembershipId,

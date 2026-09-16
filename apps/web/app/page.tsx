@@ -91,6 +91,21 @@ export default function NominationPage() {
       setState({ status: "error", message: "তালিকা থেকে ভোটার মেম্বারশিপ আইডি নির্বাচন করুন" });
       return;
     }
+    if (!values.proposerMembershipId) {
+      setState({ status: "error", message: "তালিকা থেকে প্রস্তাবকারীর মেম্বারশিপ আইডি নির্বাচন করুন" });
+      return;
+    }
+    if (!values.supporterMembershipId) {
+      setState({ status: "error", message: "তালিকা থেকে সমর্থনকারীর মেম্বারশিপ আইডি নির্বাচন করুন" });
+      return;
+    }
+    if (values.proposerMembershipId === values.supporterMembershipId) {
+      setState({
+        status: "error",
+        message: "প্রস্তাবকারী ও সমর্থনকারীর মেম্বারশিপ আইডি একই হতে পারবে না",
+      });
+      return;
+    }
     if (!file) {
       setState({ status: "error", message: "ফি পরিশোধের রশিদ আপলোড করুন" });
       return;
@@ -251,11 +266,10 @@ export default function NominationPage() {
               onChange={(v) => update("proposerName", v)}
               required
             />
-            <TextInput
-              placeholder="মেম্বারশিপ আইডি"
+            <MembershipIdSelect
               value={values.proposerMembershipId}
               onChange={(v) => update("proposerMembershipId", v)}
-              required
+              excludeIds={[values.supporterMembershipId]}
             />
           </div>
           {state.status === "duplicate" && state.field === "proposer" && (
@@ -275,11 +289,10 @@ export default function NominationPage() {
               onChange={(v) => update("supporterName", v)}
               required
             />
-            <TextInput
-              placeholder="মেম্বারশিপ আইডি"
+            <MembershipIdSelect
               value={values.supporterMembershipId}
               onChange={(v) => update("supporterMembershipId", v)}
-              required
+              excludeIds={[values.proposerMembershipId]}
             />
           </div>
           {state.status === "duplicate" && state.field === "supporter" && (
@@ -318,6 +331,12 @@ export default function NominationPage() {
         {state.status === "error" && (
           <div className="rounded-md border border-red-200 bg-red-50 p-4 text-sm text-red-700">
             {state.message}
+          </div>
+        )}
+
+        {state.status === "duplicate" && state.field === "limit" && (
+          <div className="rounded-md border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+            <span className="font-semibold">DUPLICATE</span> — {state.message}
           </div>
         )}
 

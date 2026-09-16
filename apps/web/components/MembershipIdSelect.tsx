@@ -6,13 +6,17 @@ import { MEMBER_ID_GROUPS } from "@bps/shared";
 export function MembershipIdSelect({
   value,
   onChange,
+  excludeIds = [],
 }: {
   value: string;
   onChange: (v: string) => void;
+  /** IDs that exist but can't be picked here (e.g. already used elsewhere in this form). */
+  excludeIds?: string[];
 }) {
   const [query, setQuery] = useState(value);
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const excludeSet = useMemo(() => new Set(excludeIds.filter(Boolean)), [excludeIds]);
 
   useEffect(() => {
     setQuery(value);
@@ -38,6 +42,7 @@ export function MembershipIdSelect({
   }, [query]);
 
   function selectId(id: string) {
+    if (excludeSet.has(id)) return;
     onChange(id);
     setQuery(id);
     setOpen(false);
@@ -72,18 +77,27 @@ export function MembershipIdSelect({
               <p className="sticky top-0 bg-gray-50 px-3 py-1 text-xs font-medium text-gray-500">
                 {g.label}
               </p>
-              {g.ids.map((id) => (
-                <button
-                  type="button"
-                  key={id}
-                  onClick={() => selectId(id)}
-                  className={`block w-full px-3 py-1.5 text-left text-sm hover:bg-indigo-50 ${
-                    id === value ? "bg-indigo-50 font-medium text-indigo-700" : ""
-                  }`}
-                >
-                  {id}
-                </button>
-              ))}
+              {g.ids.map((id) => {
+                const excluded = excludeSet.has(id);
+                return (
+                  <button
+                    type="button"
+                    key={id}
+                    disabled={excluded}
+                    onClick={() => selectId(id)}
+                    className={`block w-full px-3 py-1.5 text-left text-sm ${
+                      excluded
+                        ? "cursor-not-allowed text-gray-300"
+                        : id === value
+                          ? "bg-indigo-50 font-medium text-indigo-700 hover:bg-indigo-50"
+                          : "hover:bg-indigo-50"
+                    }`}
+                  >
+                    {id}
+                    {excluded && <span className="ml-2 text-xs">(ইতিমধ্যে নির্বাচিত)</span>}
+                  </button>
+                );
+              })}
             </div>
           ))}
         </div>

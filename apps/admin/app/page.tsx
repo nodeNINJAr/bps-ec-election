@@ -1,25 +1,7 @@
-import Link from "next/link";
 import { connectDB, Nomination } from "@bps/db";
+import { ResponsesTable, type Row } from "@/components/ResponsesTable";
 
 export const dynamic = "force-dynamic";
-
-type Row = {
-  _id: string;
-  email: string;
-  voterName: string;
-  voterMembershipId: string;
-  fatherName: string;
-  dob: string;
-  mobile: string;
-  university: string;
-  position: string;
-  proposerName: string;
-  proposerMembershipId: string;
-  supporterName: string;
-  supporterMembershipId: string;
-  feeReceiptUrl: string;
-  createdAt: string;
-};
 
 async function getRows(q: string): Promise<Row[]> {
   await connectDB();
@@ -101,69 +83,9 @@ export default async function AdminDashboard({
         </a>
       </div>
 
-      <div className="mt-4 overflow-x-auto rounded-lg border border-gray-200 bg-white">
-        <table className="w-full min-w-[1100px] text-left text-sm">
-          <thead className="bg-gray-50 text-xs uppercase text-gray-500">
-            <tr>
-              <Th>Submitted</Th>
-              <Th>Email</Th>
-              <Th>Voter Name</Th>
-              <Th>Voter Membership ID</Th>
-              <Th>Father's Name</Th>
-              <Th>DOB</Th>
-              <Th>Mobile</Th>
-              <Th>University</Th>
-              <Th>Position</Th>
-              <Th>Proposer</Th>
-              <Th>Supporter</Th>
-              <Th>Details</Th>
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map((r) => (
-              <tr key={r._id} className="border-t border-gray-100">
-                <Td>{r.createdAt}</Td>
-                <Td>{r.email}</Td>
-                <Td>{r.voterName}</Td>
-                <Td>{r.voterMembershipId}</Td>
-                <Td>{r.fatherName}</Td>
-                <Td>{r.dob}</Td>
-                <Td>{r.mobile}</Td>
-                <Td>{r.university}</Td>
-                <Td>{r.position}</Td>
-                <Td>
-                  {r.proposerName}
-                  <div className="text-xs text-gray-500">{r.proposerMembershipId}</div>
-                </Td>
-                <Td>
-                  {r.supporterName}
-                  <div className="text-xs text-gray-500">{r.supporterMembershipId}</div>
-                </Td>
-                <Td>
-                  <Link href={`/responses/${r._id}`} className="text-indigo-600 hover:underline">
-                    View
-                  </Link>
-                </Td>
-              </tr>
-            ))}
-            {rows.length === 0 && (
-              <tr>
-                <td colSpan={12} className="px-4 py-8 text-center text-gray-400">
-                  No responses yet.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+      <div className="mt-4">
+        <ResponsesTable rows={rows} />
       </div>
     </main>
   );
-}
-
-function Th({ children }: { children: React.ReactNode }) {
-  return <th className="whitespace-nowrap px-3 py-2 font-medium">{children}</th>;
-}
-
-function Td({ children }: { children: React.ReactNode }) {
-  return <td className="whitespace-nowrap px-3 py-2 align-top">{children}</td>;
 }

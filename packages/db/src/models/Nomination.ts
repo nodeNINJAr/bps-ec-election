@@ -30,10 +30,16 @@ const NominationSchema = new Schema(
 );
 
 // Backstop uniqueness at the database level (application code also checks
-// these up front so it can return a friendly, field-specific error message).
-NominationSchema.index({ position: 1 }, { unique: true });
-NominationSchema.index({ proposerMembershipIdNormalized: 1 }, { unique: true });
-NominationSchema.index({ supporterMembershipIdNormalized: 1 }, { unique: true });
+// this up front so it can return a friendly, field-specific error message).
+// Same voter (email + voter membership ID) can't reuse a position, but
+// different voters can both nominate for the same position.
+NominationSchema.index({ email: 1, voterMembershipId: 1, position: 1 }, { unique: true });
+
+// Proposer/supporter usage is capped (see MAX_PROPOSALS_PER_MEMBER /
+// MAX_SUPPORTS_PER_MEMBER in checkDuplicate.ts) rather than single-use, so
+// these are plain indexes for the count queries, not unique constraints.
+NominationSchema.index({ proposerMembershipIdNormalized: 1 });
+NominationSchema.index({ supporterMembershipIdNormalized: 1 });
 
 export type NominationDoc = InferSchemaType<typeof NominationSchema>;
 

@@ -22,9 +22,20 @@ export const nominationFieldsSchema = z.object({
     errorMap: () => ({ message: "সঠিক পদ নির্বাচন করুন" }),
   }),
   proposerName: z.string().trim().min(1, "প্রস্তাবকারীর নাম আবশ্যক"),
-  proposerMembershipId: z.string().trim().min(1, "প্রস্তাবকারীর মেম্বারশিপ আইডি আবশ্যক"),
+  proposerMembershipId: z
+    .string()
+    .trim()
+    .min(1, "প্রস্তাবকারীর মেম্বারশিপ আইডি আবশ্যক")
+    .refine((id) => MEMBER_ID_SET.has(id), "তালিকা থেকে একটি সঠিক মেম্বারশিপ আইডি নির্বাচন করুন"),
   supporterName: z.string().trim().min(1, "সমর্থনকারীর নাম আবশ্যক"),
-  supporterMembershipId: z.string().trim().min(1, "সমর্থনকারীর মেম্বারশিপ আইডি আবশ্যক"),
+  supporterMembershipId: z
+    .string()
+    .trim()
+    .min(1, "সমর্থনকারীর মেম্বারশিপ আইডি আবশ্যক")
+    .refine((id) => MEMBER_ID_SET.has(id), "তালিকা থেকে একটি সঠিক মেম্বারশিপ আইডি নির্বাচন করুন"),
+}).refine((data) => data.proposerMembershipId !== data.supporterMembershipId, {
+  message: "প্রস্তাবকারী ও সমর্থনকারীর মেম্বারশিপ আইডি একই হতে পারবে না",
+  path: ["supporterMembershipId"],
 });
 
 export type NominationFields = z.infer<typeof nominationFieldsSchema>;
