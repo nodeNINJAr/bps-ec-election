@@ -14,6 +14,10 @@ export const MEMBER_ID_GROUPS: { label: string; ids: string[] }[] = [
   { label: "General Member (2022)", ids: range("G22", 1, 106, 3) },
   { label: "General Member (2023)", ids: range("G23", 1, 23, 3) },
   { label: "General Member (2024)", ids: range("G24", 1, 22, 3) },
+  {
+    label: "Lifetime Member",
+    ids: ["L21001", "L21002", "L21003", "L22001", "L22002", "L22003", "L24001"],
+  },
 ];
 
 export const ALL_MEMBER_IDS: string[] = MEMBER_ID_GROUPS.flatMap((g) => g.ids);
