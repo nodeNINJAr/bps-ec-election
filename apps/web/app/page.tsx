@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { POSITIONS } from "@bps/shared";
 import { MembershipIdSelect } from "@/components/MembershipIdSelect";
 
@@ -234,21 +234,31 @@ export default function NominationPage() {
           required
           highlight={state.status === "duplicate" && state.field === "position"}
         >
-          <select
-            required
-            value={values.position}
-            onChange={(e) => update("position", e.target.value)}
-            className="w-full border-b border-gray-300 bg-transparent py-1 text-sm outline-none focus:border-indigo-600"
-          >
-            <option value="" disabled>
-              Choose
-            </option>
-            {POSITIONS.map((p) => (
-              <option key={p} value={p}>
-                {p}
+          <div className="relative">
+            <select
+              required
+              value={values.position}
+              onChange={(e) => update("position", e.target.value)}
+              className={`w-full appearance-none rounded-md border bg-white px-3 py-2.5 pr-9 text-sm outline-none transition-colors focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 ${
+                values.position ? "border-gray-300 text-gray-900" : "border-gray-300 text-gray-400"
+              }`}
+            >
+              <option value="" disabled>
+                একটি পদ নির্বাচন করুন
               </option>
-            ))}
-          </select>
+              {POSITIONS.map((p) => (
+                <option key={p} value={p} className="text-gray-900">
+                  {p}
+                </option>
+              ))}
+            </select>
+            <ChevronDownIcon className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+          </div>
+          {values.position && (
+            <span className="mt-2 inline-flex items-center rounded-full bg-indigo-50 px-3 py-1 text-xs font-medium text-indigo-700">
+              {values.position}
+            </span>
+          )}
           {state.status === "duplicate" && state.field === "position" && (
             <DuplicateNotice message={state.message} />
           )}
@@ -301,20 +311,11 @@ export default function NominationPage() {
         </Field>
 
         <Field label="ফি পরিশোধের রশিদ আপলোডঃ" required>
-          <p className="mb-2 text-xs text-gray-500">সর্বোচ্চ ১টি ফাইল, ১০ এমবি পর্যন্ত।</p>
-          <input
-            type="file"
-            required
-            accept="image/*,application/pdf"
+          <FileDropzone
+            file={file}
+            onFileChange={setFile}
             disabled={state.status === "submitting"}
-            onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-            className="text-sm disabled:opacity-60"
           />
-          {file && (
-            <p className="mt-2 text-xs text-gray-500">
-              নির্বাচিত ফাইল: {file.name} ({(file.size / 1024 / 1024).toFixed(2)} এমবি)
-            </p>
-          )}
           {state.status === "submitting" && (
             <div className="mt-3">
               <div className="h-2 w-full overflow-hidden rounded-full bg-gray-200">
@@ -414,5 +415,144 @@ function DuplicateNotice({ message }: { message: string }) {
     <div className="mt-3 rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">
       <span className="font-semibold">DUPLICATE</span> — {message}
     </div>
+  );
+}
+
+function FileDropzone({
+  file,
+  onFileChange,
+  disabled,
+}: {
+  file: File | null;
+  onFileChange: (f: File | null) => void;
+  disabled?: boolean;
+}) {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [isDragging, setIsDragging] = useState(false);
+
+  function openPicker() {
+    if (disabled) return;
+    inputRef.current?.click();
+  }
+
+  function handleDrop(e: React.DragEvent<HTMLButtonElement>) {
+    e.preventDefault();
+    setIsDragging(false);
+    if (disabled) return;
+    const dropped = e.dataTransfer.files?.[0];
+    if (dropped) onFileChange(dropped);
+  }
+
+  return (
+    <div>
+      <input
+        ref={inputRef}
+        type="file"
+        required={!file}
+        accept="image/*,application/pdf"
+        disabled={disabled}
+        onChange={(e) => onFileChange(e.target.files?.[0] ?? null)}
+        className="sr-only"
+      />
+
+      {!file ? (
+        <button
+          type="button"
+          onClick={openPicker}
+          onDragOver={(e) => {
+            e.preventDefault();
+            if (!disabled) setIsDragging(true);
+          }}
+          onDragLeave={() => setIsDragging(false)}
+          onDrop={handleDrop}
+          disabled={disabled}
+          className={`flex w-full flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed px-4 py-8 text-center transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${
+            isDragging
+              ? "border-indigo-500 bg-indigo-50"
+              : "border-gray-300 hover:border-indigo-400 hover:bg-gray-50"
+          }`}
+        >
+          <UploadIcon className="h-8 w-8 text-gray-400" />
+          <span className="text-sm font-medium text-gray-700">
+            ক্লিক করুন অথবা ফাইল টেনে আনুন
+          </span>
+          <span className="text-xs text-gray-400">PNG, JPG অথবা PDF — সর্বোচ্চ ১০ এমবি</span>
+        </button>
+      ) : (
+        <div className="flex items-center gap-3 rounded-lg border border-gray-200 bg-gray-50 px-4 py-3">
+          <FileIcon className="h-8 w-8 flex-shrink-0 text-indigo-500" />
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-sm font-medium text-gray-900">{file.name}</p>
+            <p className="text-xs text-gray-500">{(file.size / 1024 / 1024).toFixed(2)} এমবি</p>
+          </div>
+          {!disabled && (
+            <button
+              type="button"
+              onClick={() => onFileChange(null)}
+              aria-label="ফাইল সরান"
+              className="flex-shrink-0 rounded-full p-1 text-gray-400 hover:bg-gray-200 hover:text-gray-600"
+            >
+              <CloseIcon className="h-4 w-4" />
+            </button>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ChevronDownIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 20 20" fill="currentColor" className={className}>
+      <path
+        fillRule="evenodd"
+        d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 11.168l3.71-3.938a.75.75 0 1 1 1.08 1.04l-4.25 4.5a.75.75 0 0 1-1.08 0l-4.25-4.5a.75.75 0 0 1 .02-1.06Z"
+        clipRule="evenodd"
+      />
+    </svg>
+  );
+}
+
+function UploadIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.5}
+      className={className}
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M12 16.5V9m0 0-3 3m3-3 3 3M4.5 16.5v1.125c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V16.5M4.5 16.5A2.25 2.25 0 0 1 6.75 14.25h10.5A2.25 2.25 0 0 1 19.5 16.5"
+      />
+    </svg>
+  );
+}
+
+function FileIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.5}
+      className={className}
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M9 12h6m-6 3h6m-7.5 6h9a2.25 2.25 0 0 0 2.25-2.25V7.5L14.25 3H6.75A2.25 2.25 0 0 0 4.5 5.25v13.5A2.25 2.25 0 0 0 6.75 21Z"
+      />
+    </svg>
+  );
+}
+
+function CloseIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 20 20" fill="currentColor" className={className}>
+      <path d="M6.28 5.22a.75.75 0 0 0-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 1 0 1.06 1.06L10 11.06l3.72 3.72a.75.75 0 1 0 1.06-1.06L11.06 10l3.72-3.72a.75.75 0 0 0-1.06-1.06L10 8.94 6.28 5.22Z" />
+    </svg>
   );
 }
