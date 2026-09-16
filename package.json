@@ -1,0 +1,13 @@
+{
+  "name": "bps-ec-election",
+  "private": true,
+  "scripts": {
+    "dev:web": "pnpm --filter @bps/web dev -p 3000",
+    "dev:admin": "pnpm --filter @bps/admin dev -p 3001",
+    "build": "pnpm -r --filter=./apps/* build",
+    "start:web": "pnpm --filter @bps/web start -p 3000",
+    "start:admin": "pnpm --filter @bps/admin start -p 3001",
+    "lint": "pnpm -r --filter=./apps/* lint"
+  },
+  "packageManager": "pnpm@9.15.0"
+}
